@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator App</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .calculator {
+            max-width: 400px;
+            margin: auto;
+        }
+        .calculator-screen {
+            height: 80px;
+        }
+        .calculator-keys button {
+            height: 80px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="calculator bg-white shadow-lg rounded-lg p-6">
+        <input type="text" class="calculator-screen w-full bg-gray-200 text-right text-4xl p-4 mb-4 rounded" disabled>
+        <div class="calculator-keys grid grid-cols-4 gap-4">
+            <button class="bg-gray-300 text-2xl font-bold rounded">7</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">8</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">9</button>
+            <button class="bg-orange-500 text-blue-500 text-2xl font-bold rounded">/</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">4</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">5</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">6</button>
+            <button class="bg-orange-500 text-blue-500 text-2xl font-bold rounded">*</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">1</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">2</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">3</button>
+            <button class="bg-orange-500 text-blue-500 text-2xl font-bold rounded">-</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">0</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">.</button>
+            <button class="bg-gray-300 text-2xl font-bold rounded">C</button>
+            <button class="bg-orange-500 text-blue-500 text-2xl font-bold rounded">+</button>
+            <button class="col-span-4 bg-green-500 text-white text-2xl font-bold rounded">=</button>
+        </div>
+    </div>
+
+    <script>
+        const calculator = {
+            displayValue: '0',
+            firstOperand: null,
+            waitingForSecondOperand: false,
+            operator: null,
+        };
+
+        function inputDigit(digit) {
+            const { displayValue, waitingForSecondOperand } = calculator;
+
+            if (waitingForSecondOperand === true) {
+                calculator.displayValue = digit;
+                calculator.waitingForSecondOperand = false;
+            } else {
+                calculator.displayValue = displayValue === '0' ? digit : displayValue + digit;
+            }
+        }
+
+        function inputDecimal(dot) {
+            if (calculator.waitingForSecondOperand === true) return;
+
+            if (!calculator.displayValue.includes(dot)) {
+                calculator.displayValue += dot;
+            }
+        }
+
+        function handleOperator(nextOperator) {
+            const { firstOperand, displayValue, operator } = calculator;
+            const inputValue = parseFloat(displayValue);
+
+            if (operator && calculator.waitingForSecondOperand) {
+                calculator.operator = nextOperator;
+                return;
+            }
+
+            if (firstOperand == null && !isNaN(inputValue)) {
+                calculator.firstOperand = inputValue;
+            } else if (operator) {
+                const result = performCalculation[operator](firstOperand, inputValue);
+
+                calculator.displayValue = String(result);
+                calculator.firstOperand = result;
+            }
+
+            calculator.waitingForSecondOperand = true;
+            calculator.operator = nextOperator;
+        }
+
+        const performCalculation = {
+            '/': (firstOperand, secondOperand) => firstOperand / secondOperand,
+            '*': (firstOperand, secondOperand) => firstOperand * secondOperand,
+            '+': (firstOperand, secondOperand) => firstOperand + secondOperand,
+            '-': (firstOperand, secondOperand) => firstOperand - secondOperand,
+            '=': (firstOperand, secondOperand) => secondOperand
+        };
+
+        function resetCalculator() {
+            calculator.displayValue = '0';
+            calculator.firstOperand = null;
+            calculator.waitingForSecondOperand = false;
+            calculator.operator = null;
+        }
+
+        function updateDisplay() {
+            const display = document.querySelector('.calculator-screen');
+            display.value = calculator.displayValue;
+        }
+
+        updateDisplay();
+
+        const keys = document.querySelector('.calculator-keys');
+        keys.addEventListener('click', (event) => {
+            const { target } = event;
+            if (!target.matches('button')) {
+                return;
+            }
+
+            if (target.textContent === 'C') {
+                resetCalculator();
+                updateDisplay();
+                return;
+            }
+
+            if (target.textContent === '.') {
+                inputDecimal(target.textContent);
+                updateDisplay();
+                return;
+            }
+
+            if (target.textContent === '=') {
+                handleOperator(target.textContent);
+                updateDisplay();
+                return;
+            }
+
+            if (['+', '-', '*', '/'].includes(target.textContent)) {
+                handleOperator(target.textContent);
+                updateDisplay();
+                return;
+            }
+
+            inputDigit(target.textContent);
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
